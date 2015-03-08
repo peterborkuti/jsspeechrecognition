@@ -37,6 +37,31 @@
         </div>
 
         <script>
+            //WebkitSpeechRecognition object
+            var recognition;
+
+            function init() {
+
+                // browser's language for proper speech recognition
+                window.___gcfg = { lang: 'hu' };
+
+                showInfo('');
+
+                initSpeachRecognition();
+
+            }
+
+            function initSpeachRecognition() {
+                if (!('webkitSpeechRecognition' in window)) {
+                    showInfo('info_upgrade');
+                } else {
+                    recognition = new webkitSpeechRecognition();
+                }
+            }
+
+            function setSpeechRecognitionObject() {
+            
+            }
 
             function showInfo(s) {
               if (s) {
@@ -51,7 +76,7 @@
               }
             }
 
-            showInfo('');
+            init();
 
         </script>
 
