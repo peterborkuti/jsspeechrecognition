@@ -49,6 +49,7 @@
 
                 initSpeachRecognition();
 
+                startSpeechRecognition();
             }
 
             function initSpeachRecognition() {
@@ -56,12 +57,64 @@
                     showInfo('info_upgrade');
                 } else {
                     recognition = new webkitSpeechRecognition();
+                    setSpeechRecognitionObject();
                 }
             }
 
-            function setSpeechRecognitionObject() {
-            
+            function startSpeechRecognition() {
+              recognition.lang = 'hu-HU';
+              recognition.start();
+              showInfo('info_allow');
             }
+
+            function setSpeechRecognitionObject() {
+              var ignore_onend = false;
+              var recognizing = false;
+              recognition.continuous = true;
+                  recognition.interimResults = true;
+
+                  recognition.onstart = function() {
+                    recognizing = true;
+                    showInfo('info_speak_now');
+                   };
+
+                  recognition.onerror = function(event) {
+                    if (event.error == 'no-speech') {
+                      showInfo('info_no_speech');
+                      ignore_onend = true;
+                    }
+                    if (event.error == 'audio-capture') {
+                      showInfo('info_no_microphone');
+                      ignore_onend = true;
+                    }
+                    if (event.error == 'not-allowed') {
+                      if (event.timeStamp - start_timestamp < 100) {
+                        showInfo('info_blocked');
+                      } else {
+                        showInfo('info_denied');
+                      }
+                      ignore_onend = true;
+                    }
+                  };
+
+                  recognition.onend = function() {
+                    recognizing = false;
+                    if (ignore_onend) {
+                      return;
+                    }
+                    showInfo('');
+                  };
+
+                  recognition.onresult = function(event) {
+                    var interim_transcript = '';
+                    if (typeof(event.results) == 'undefined') {
+                      recognition.onend = null;
+                      recognition.stop();
+                      showInfo('info_upgrade');
+                      return;
+                    }
+                  };
+                }
 
             function showInfo(s) {
               if (s) {
