@@ -36,9 +36,40 @@
             </p>
         </div>
 
+        <div id="game">
+            Expression:<div id="expression"></div>
+            Your score:<div id="score">0</div>
+        </div> <!-- game -->
+
         <script>
             //WebkitSpeechRecognition object
             var recognition;
+
+            // the good result of the expression
+            // user must say it
+            var expressionResult;
+            var scoreValue = 0;
+
+            function updateScore(addScore) {
+                scoreValue += addScore;
+                score.innerHTML = scoreValue;
+            }
+
+            function newTurn() {
+                setExpression();
+                startSpeechRecognition();
+            }
+
+            function getRandomValue() {
+                return Math.floor((Math.random() * 10) + 1);
+            }
+
+            function setExpression() {
+                var a = getRandomValue();
+                var b = getRandomValue();
+                expressionResult = a * b;
+                expression.innerHTML = a + ' * ' + b;
+            }
 
             function init() {
 
@@ -49,7 +80,7 @@
 
                 initSpeachRecognition();
 
-                startSpeechRecognition();
+                newTurn();
             }
 
             function initSpeachRecognition() {
@@ -71,7 +102,7 @@
               var ignore_onend = false;
               var recognizing = false;
               recognition.continuous = true;
-                  recognition.interimResults = true;
+                  recognition.interimResults = false;
 
                   recognition.onstart = function() {
                     recognizing = true;
@@ -106,14 +137,44 @@
                   };
 
                   recognition.onresult = function(event) {
+                    console.log('result');
                     var interim_transcript = '';
                     if (typeof(event.results) == 'undefined') {
                       recognition.onend = null;
                       recognition.stop();
                       showInfo('info_upgrade');
-                      return;
+                        return;
                     }
+                        for (var i = event.resultIndex; i < event.results.length; ++i) {
+                            var transcript = event.results[i][0].transcript;
+                            var sure = event.results[i].isFinal;
+                            console.log(sure, transcript, expressionResult);
+                            var point = 0;
+                            if (transcript == expressionResult) {
+                                point = 1;
+                            }
+                            else {
+                                if (sure) {
+                                    point = -1;
+                                }
+                            }
+                            if (point !== 0) {
+                                updateScore(point);
+                                recognition.stop();
+                                setTimeout(newTurn,500);
+                            }
+
+                        }
                   };
+
+                recognition.onspeechstart = function(event) {
+                    console.log('speech start');
+                }
+                
+                recognition.onspeechend = function(event) {
+                    console.log('speech end');
+                }
+                
                 }
 
             function showInfo(s) {
